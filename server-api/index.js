@@ -8,11 +8,16 @@ app.use(cors());
 app.use(express.json());
 
 const dba = mysql.createPool({
-  user: "root",
-  host: "localhost",
-  password: "",
-  database: "employeesystem",
+  connectionLimit : 100,
+  user: "b7571143594ad5",
+  host: "us-cdbr-east-05.cleardb.net",
+  password: "8ecf477d",
+  database: "heroku_27f903256fef471",
 });
+
+
+
+console.log({dba});
 
 app.post("/create", (req, res) => {
   dba.getConnection(function(err,db){
@@ -20,8 +25,6 @@ app.post("/create", (req, res) => {
     console.log('connected as id ' + db.threadId)
     const name = req.body.name;
     const email = req.body.email;
-    
-  
     db.query(
       "INSERT INTO emloyee (name, email) VALUES (?,?)",
       [name, email],
@@ -32,18 +35,24 @@ app.post("/create", (req, res) => {
           res.send("Values Inserted");
         }
       }
-    );})
+    );
+  })
   
 });
 
 app.get("/employees", (req, res) => {
-  dba.getConnection(function(err,db){db.query("SELECT * FROM emloyee", (err, result) => {
+ 
+  dba.getConnection(function(err,db){
+    console.log(db);
+    db.query("SELECT * FROM emloyee", (err, result) => {
     if (err) {
       console.log(err);
     } else {
       res.send(result);
     }
-  });})
+  });
+})
+
 });
 
 app.put("/update", (req, res) => {
@@ -82,6 +91,11 @@ app.delete("/delete/:id", (req, res) => {
   });})
 });
 
+
+app.get('/', function (req, res) {
+  res.send('hello world')
+  })
+
   
   
 app.use(function (req, res, next) {
@@ -89,9 +103,13 @@ app.use(function (req, res, next) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
   res.setHeader('Access-Control-Allow-Credentials', true);
+  req.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+  req.setHeader('Access-Control-Allow-Origin', '*');
+  req.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  req.setHeader('Access-Control-Allow-Credentials', true);
   next();
 });
 
-app.listen(3006, () => {
+app.listen(process.env.PORT || 3006, () => {
   console.log("Yey, your server is running on port 3006");
 });
